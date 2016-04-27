@@ -18,6 +18,11 @@ public:
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
     bool onContactBegin(const cocos2d::PhysicsContact& contact); 
+    void initInternal(cocos2d::Size visibleSize);
+
+private:
+    void setPhyWorld(cocos2d::PhysicsWorld *);  
+    cocos2d::PhysicsWorld * m_world;
 };
 
 #endif // __HELLOWORLD_SCENE_H__

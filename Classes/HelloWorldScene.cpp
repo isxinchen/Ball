@@ -2,6 +2,9 @@
 
 USING_NS_CC;
 
+//#define TWO_BALL
+
+
 //物理引擎标识  
 int ball1Mask = 1 << 0;//球1  
 int ball2Mask = 1 << 1;//球2  
@@ -31,10 +34,14 @@ Scene* HelloWorld::createScene()
     HelloWorld* layer=HelloWorld::create();  
 
     //把空间保持我们创建的层中，就是上面所说m_world的作用，方便后面设置空间的参数  
-    //layer->setPhyWorld(scene->getPhysicsWorld());  
+    layer->setPhyWorld(scene->getPhysicsWorld());  
     
     scene->addChild(layer);  
     return scene;
+}
+void HelloWorld::setPhyWorld(PhysicsWorld *world)
+{
+    m_world = world;
 }
 
 void HelloWorld::onEnter()  
@@ -49,6 +56,95 @@ void HelloWorld::onEnter()
 }
 
 
+void HelloWorld::initInternal(Size visibleSize )
+{
+    auto ballOne=Sprite::create();  
+    ballOne->setContentSize(Size(40, 40));  
+    ballOne->setPosition(visibleSize.width/2, visibleSize.height - 20);  
+    //创建物体，并且物体的形状为圆形，第一参数为半径，第二个参数为物体材质  
+    //第三个参数为边的厚度,就是在Debug模式下看到的物体外面线条的厚度，默认为0  
+    PhysicsBody* ballBodyOne=PhysicsBody::createCircle(ballOne->getContentSize().width/2,PHYSICSBODY_MATERIAL_DEFAULT, Vec2(1,1));  
+    //  
+    //ballBodyOne->setCategoryBitmask(1);  
+      
+    //是否设置物体为静态  
+    //ballBody->setDynamic(false);  
+    //设置物体的恢复力  
+    ballBodyOne->getShape(0)->setRestitution(1.0f);  
+    //设置物体的摩擦力  
+    ballBodyOne->getShape(0)->setFriction(0.0f);  
+    //设置物体密度  
+    ballBodyOne->getShape(0)->setDensity(1.0f);  
+    //设置质量  
+    ballBodyOne->getShape(0)->setMass(5000);  
+    //设置物体是否受重力系数影响  
+    ballBodyOne->setGravityEnable(true);  
+      
+    //设置物体的冲力  
+    //Vect force=Vect(500000.0f, 500000.0f);  
+    //ballBodyOne->applyImpulse(force);  
+    //把物体添加到精灵中  
+    ballOne->setPhysicsBody(ballBodyOne);  
+    //设置标志  
+    ballOne->setTag(1);  
+    this->addChild(ballOne);  
+
+    auto obstacle=Sprite::create();  
+    obstacle->setContentSize(Size(10, 10));  
+    obstacle->setPosition(visibleSize.width/2 + 10, visibleSize.height/2);  
+    //创建物体，并且物体的形状为圆形，第一参数为半径，第二个参数为物体材质  
+    //第三个参数为边的厚度,就是在Debug模式下看到的物体外面线条的厚度，默认为0  
+    PhysicsBody* obstacleBody=PhysicsBody::createCircle(obstacle->getContentSize().width/2,PHYSICSBODY_MATERIAL_DEFAULT, Vec2(1,1));  
+    //  
+    //ballBodyOne->setCategoryBitmask(1);  
+      
+    //是否设置物体为静态  
+    obstacleBody->setDynamic(false);  
+    //设置物体的恢复力  
+    obstacleBody->getShape(0)->setRestitution(1.0f);  
+    //设置物体的摩擦力  
+    obstacleBody->getShape(0)->setFriction(0.0f);  
+    //设置物体密度  
+    obstacleBody->getShape(0)->setDensity(1.0f);  
+    //设置质量  
+    obstacleBody->getShape(0)->setMass(5000);  
+    //设置物体是否受重力系数影响  
+    obstacleBody->setGravityEnable(true);  
+      
+    //设置物体的冲力  
+    //Vect force=Vect(500000.0f, 500000.0f);  
+    //ballBodyOne->applyImpulse(force);  
+    //把物体添加到精灵中  
+    obstacle->setPhysicsBody(obstacleBody);  
+    //设置标志  
+    obstacle->setTag(2);  
+    this->addChild(obstacle);  
+
+    Sprite* edgeSpace=Sprite::create();  
+    PhysicsBody* boundBody=PhysicsBody::createEdgeBox(visibleSize,PHYSICSBODY_MATERIAL_DEFAULT,3);  
+    boundBody->getShape(0)->setFriction(0.0f);  
+    boundBody->getShape(0)->setRestitution(1.0f);  
+      
+    edgeSpace->setPhysicsBody(boundBody);  
+    edgeSpace->setPosition(Point(visibleSize.width/2,visibleSize.height/2));  
+    this->addChild(edgeSpace);  
+    edgeSpace->setTag(0);
+
+
+    ballBodyOne->setCategoryBitmask(ball1Mask);  
+    ballBodyOne->setCollisionBitmask(wallMask|ball1Mask|ball2Mask);  
+    ballBodyOne->setContactTestBitmask(wallMask|ball1Mask|ball2Mask);  
+      
+    obstacleBody->setCategoryBitmask(ball2Mask);  
+    obstacleBody->setCollisionBitmask(wallMask|ball1Mask|ball2Mask);  
+    obstacleBody->setContactTestBitmask(wallMask|ball1Mask|ball2Mask);  
+      
+    boundBody->setCategoryBitmask(wallMask);  
+    boundBody->setCollisionBitmask(wallMask | ball1Mask|ball2Mask);  
+    boundBody->setContactTestBitmask(wallMask|ball1Mask|ball2Mask);
+
+
+}
 // on "init" you need to initialize your instance
 bool HelloWorld::init()
 {
@@ -106,6 +202,7 @@ bool HelloWorld::init()
     this->addChild(sprite, 0);
 #endif 
       
+#ifdef TWO_BALL
     auto ballOne=Sprite::create();  
     ballOne->setContentSize(Size(50, 50));  
     ballOne->setPosition(visibleSize.width/2,visibleSize.height/2);  
@@ -180,6 +277,9 @@ bool HelloWorld::init()
     boundBody->setCategoryBitmask(wallMask);  
     boundBody->setCollisionBitmask(wallMask | ball1Mask|ball2Mask);  
     boundBody->setContactTestBitmask(wallMask|ball1Mask|ball2Mask);
+#else
+    initInternal(visibleSize);
+#endif
 
     return true;
 }
@@ -197,6 +297,7 @@ void HelloWorld::menuCloseCallback(Ref* pSender)
 bool HelloWorld::onContactBegin(const PhysicsContact& contact)  
 {  
      
+#ifdef TWO_BALL
     if ((contact.getShapeA()->getBody()->getCategoryBitmask() & ball1Mask) == ball1Mask) {  
         CCLOG("ball1 touch something");  
     }  
@@ -211,6 +312,7 @@ bool HelloWorld::onContactBegin(const PhysicsContact& contact)
     if ((contact.getShapeB()->getBody()->getCategoryBitmask() & ball2Mask) == ball2Mask) {  
         CCLOG("ball2 touch something");  
     }  
+#endif
       
     return true;  
 }  
