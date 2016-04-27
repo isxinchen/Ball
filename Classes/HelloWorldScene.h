@@ -24,7 +24,9 @@ private:
     void initInternal(cocos2d::Size visibleSize);
     void createBall(cocos2d::Size visibleSize);
     void createAbstacles(cocos2d::Size visibleSize);
+    void createGround(cocos2d::Size visibleSize);
     cocos2d::PhysicsWorld *m_world;
+    cocos2d::PhysicsBody* ballBodyOne;  
 };
 
 #endif // __HELLOWORLD_SCENE_H__
