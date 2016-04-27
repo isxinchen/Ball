@@ -30,6 +30,9 @@ Scene* HelloWorld::createScene()
 
     //设置Debug模式，你会看到物体的表面被线条包围，主要为了在调试中更容易地观察  
     scene->getPhysicsWorld()->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);  
+    Vect gravity(0, 9.8f);
+    scene->getPhysicsWorld()->setGravity(gravity);
+
 
     HelloWorld* layer=HelloWorld::create();  
 
@@ -61,7 +64,10 @@ void HelloWorld::createGround(Size visibleSize)
     for(i = 0; i < 10; i++){
         auto groundItem=Sprite::create();  
         groundItem->setContentSize(Size(10, 100));  
-        groundItem->setPosition(visibleSize.width/2 - 5 - 44*5 - 10 * 5 +5 + i*(10 + 44), visibleSize.height/2- 44/2 -2*44-10*3 +5 - 100);  
+        groundItem->setPosition(visibleSize.width / 2 - 5 - 44 * 5 - 10 * 5 + 5 + i * (10 + 44), 
+                visibleSize.height/2 - 44 / 2 - 2 * 44 - 10 * 3 + 5 - 100);  
+        Vect anchorPoint=Vect(0.5f, 0.5f);  
+        groundItem->setAnchorPoint(anchorPoint);
         //创建物体，并且物体的形状为圆形，第一参数为半径，第二个参数为物体材质  
         //第三个参数为边的厚度,就是在Debug模式下看到的物体外面线条的厚度，默认为0  
         PhysicsBody* groundItemBody=PhysicsBody::createEdgeBox(groundItem->getContentSize(),PHYSICSBODY_MATERIAL_DEFAULT,1);  
@@ -105,10 +111,15 @@ void HelloWorld::createAbstacles(Size visibleSize)
             auto obstacle=Sprite::create();  
             obstacle->setContentSize(Size(10, 10));  
             if(i % 2){
-                obstacle->setPosition(visibleSize.width/2 - 5 - 44*5 - 10 * 5 +5 + j*(10 + 44), visibleSize.height/2- 44/2 -2*44-10*3 +5 + i*(44+10));  
+                obstacle->setPosition(visibleSize.width/2 - 5 - 44*5 - 10 * 5 +5 + j*(10 + 44), 
+                        visibleSize.height/2 + 44/2 + 2 * 44 + 10 * 3 - 5 - i * (44 + 10));  
             }else{
-                obstacle->setPosition(visibleSize.width/2 - 44/2 -44*4 - 10*5 +5 + j*(10 + 44), visibleSize.height/2- 44/2 -2*44-10*3 +5 + i*(44+10) );  
+                obstacle->setPosition(visibleSize.width/2 - 44/2 -44*4 - 10*5 +5 + j*(10 + 44), 
+                        visibleSize.height/2 + 44/2 + 2 * 44 + 10 * 3 - 5 - i * (44 + 10));  
             }
+            Vect anchorPoint=Vect(0.5f, 0.5f);  
+            obstacle->setAnchorPoint(anchorPoint);
+            obstacle->setColor(Color3B(178, 178, 178));
             //创建物体，并且物体的形状为圆形，第一参数为半径，第二个参数为物体材质  
             //第三个参数为边的厚度,就是在Debug模式下看到的物体外面线条的厚度，默认为0  
             PhysicsBody* obstacleBody=PhysicsBody::createCircle(obstacle->getContentSize().width/2,PHYSICSBODY_MATERIAL_DEFAULT, Vec2(1,1));  
@@ -118,7 +129,7 @@ void HelloWorld::createAbstacles(Size visibleSize)
             //是否设置物体为静态  
             obstacleBody->setDynamic(false);  
             //设置物体的恢复力  
-            obstacleBody->getShape(0)->setRestitution(0.2f);  
+            obstacleBody->getShape(0)->setRestitution(0.5f);  
             //设置物体的摩擦力  
             obstacleBody->getShape(0)->setFriction(0.0f);  
             //设置物体密度  
@@ -147,9 +158,13 @@ void HelloWorld::createAbstacles(Size visibleSize)
 
 void HelloWorld::createBall(Size visibleSize)
 {
-    auto ballOne=Sprite::create();  
+    Rect rect = Rect::ZERO;
+    rect.size = Size(40, 40);
+    auto ballOne=Sprite::create("ball.png", rect);  
     ballOne->setContentSize(Size(40, 40));  
     ballOne->setPosition(visibleSize.width/2 +20,visibleSize.height - 40);  
+    Vect anchorPoint=Vect(0.5f, 0.5f);  
+    ballOne->setAnchorPoint(anchorPoint);
     //创建物体，并且物体的形状为圆形，第一参数为半径，第二个参数为物体材质  
     //第三个参数为边的厚度,就是在Debug模式下看到的物体外面线条的厚度，默认为0  
     ballBodyOne=PhysicsBody::createCircle(ballOne->getContentSize().width/2,PHYSICSBODY_MATERIAL_DEFAULT, Vec2(1,1));  
@@ -173,7 +188,7 @@ void HelloWorld::createBall(Size visibleSize)
     //Vect force=Vect(500000.0f, 0.0f);  
     //ballBodyOne->applyImpulse(force);  
     //设置物体初速度
-    Vect vel=Vect(200.0f, 0.0f);  
+    Vect vel=Vect(300.0f, 0.0f);  
     ballBodyOne->setVelocity(vel);
     //把物体添加到精灵中  
     ballOne->setPhysicsBody(ballBodyOne);  
@@ -193,12 +208,14 @@ void HelloWorld::initInternal(Size visibleSize)
     createGround(visibleSize);
 
     Sprite* edgeSpace=Sprite::create();  
-    PhysicsBody* boundBody=PhysicsBody::createEdgeBox(visibleSize,PHYSICSBODY_MATERIAL_DEFAULT,3);  
+    PhysicsBody* boundBody=PhysicsBody::createEdgeBox(visibleSize,PHYSICSBODY_MATERIAL_DEFAULT,1);  
     boundBody->getShape(0)->setFriction(0.0f);  
     boundBody->getShape(0)->setRestitution(1.0f);  
       
     edgeSpace->setPhysicsBody(boundBody);  
     edgeSpace->setPosition(Point(visibleSize.width/2,visibleSize.height/2));  
+    Vect anchorPoint=Vect(0.5f, 0.5f);  
+    edgeSpace->setAnchorPoint(anchorPoint);
     this->addChild(edgeSpace);  
     edgeSpace->setTag(0);
       
